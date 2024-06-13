@@ -9,7 +9,6 @@ Trigeminal neuralgia is a chronic pain condition affecting the trigeminal nerve,
 ## Data Collection
 
 - GSR data was collected using sensors placed on participants' skin during pain episodes.
-- Pain intensity ratings were recorded simultaneously with GSR measurements.
 
 ## Analysis Approach
 
