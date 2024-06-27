@@ -1,4 +1,5 @@
-required_packages <- c("readxl", "pracma", "kableExtra", "e1071", "ggplot2", "dplyr")
+# Load necessary packages
+required_packages <- c("readxl", "pracma")
 
 for (package in required_packages) {
   if (!require(package, character.only = TRUE)) {
@@ -7,58 +8,52 @@ for (package in required_packages) {
   }
 }
 
+# Read data from the provided Excel file
 data <- read_excel("5_21-GSR-COPY.xlsx", skip = 2)
 
+# Check and clean column names
 colnames(data) <- c("Time", "Conductance")
 
-data <- data %>%
-  select(Time, Conductance)
+# Convert columns to numeric
+data$Time <- as.numeric(data$Time)
+data$Conductance <- as.numeric(data$Conductance)
 
-data <- data %>%
-  mutate(Time = as.numeric(Time),
-         Conductance = as.numeric(Conductance)) %>%
-  na.omit()
+# Function to calculate AUC with baseline and return adjusted data
+calculate_auc_with_baseline <- function(data, start_time, end_time, baseline_start, baseline_end) {
+  # Filter data for the baseline period
+  baseline_data <- data[data$Time >= baseline_start & data$Time < baseline_end, ]
+  
+  # Calculate the average baseline conductance
+  baseline_conductance <- mean(baseline_data$Conductance)
+  
+  # Filter data for the AUC period
+  auc_data <- data[data$Time >= start_time & data$Time < end_time, ]
+  
+  # Subtract baseline from the conductance values
+  adjusted_conductance <- auc_data$Conductance - baseline_conductance
+  auc_data$Adjusted_Conductance <- adjusted_conductance
+  
+  # Calculate the AUC
+  auc <- trapz(auc_data$Time, adjusted_conductance)
+  
+  return(list(auc = auc, auc_data = auc_data, baseline_conductance = baseline_conductance))
+}
 
-start_time <- 3.24E+02
-end_time <- 6.47E+02
+# Define time intervals for positive control and pretzel attack
+positive_control_start <- 50
+positive_control_end <- 60
+positive_control_baseline_start <- 40
+positive_control_baseline_end <- 50
 
-filtered_data <- data %>%
-  filter(Time >= start_time & Time <= end_time)
+pretzel_attack_start <- 419
+pretzel_attack_end <- 469
+pretzel_attack_baseline_start <- 369
+pretzel_attack_baseline_end <- 419
 
-auc <- trapz(filtered_data$Time, filtered_data$Conductance)
-formatted_auc <- format(auc, scientific = TRUE)
-print(paste("The area under the curve within the specified region is:", formatted_auc))
+# Calculate AUCs for the specified regions
+positive_control_result <- calculate_auc_with_baseline(data, positive_control_start, positive_control_end, positive_control_baseline_start, positive_control_baseline_end)
+pretzel_attack_result <- calculate_auc_with_baseline(data, pretzel_attack_start, pretzel_attack_end, pretzel_attack_baseline_start, pretzel_attack_baseline_end)
 
-summary_data <- data.frame(
-  Metric = c("Area Under Curve (AUC)", "Mean Conductance (gsr)", "Median Conductance (gsr)",
-             "Standard Deviation (gsr)", "Variance (gsr)", "25th Percentile (gsr)", 
-             "75th Percentile (gsr)", "10th Percentile (gsr)", "90th Percentile (gsr)"),
-  Value = c(auc, 
-            mean(data$Conductance, na.rm = TRUE), 
-            median(data$Conductance, na.rm = TRUE), 
-            sd(data$Conductance, na.rm = TRUE), 
-            var(data$Conductance, na.rm = TRUE), 
-            quantile(data$Conductance, 0.25, na.rm = TRUE), 
-            quantile(data$Conductance, 0.75, na.rm = TRUE), 
-            quantile(data$Conductance, 0.10, na.rm = TRUE), 
-            quantile(data$Conductance, 0.90, na.rm = TRUE))
-)
-
-summary_table <- summary_data %>%
-  kable(format = "html", col.names = c("Metric", "Value")) %>%
-  kable_styling()
-
-print(summary_table)
-
-histogram <- ggplot(data, aes(x = Conductance)) +
-  geom_histogram(bins = 20, fill = "lightblue", color = "black", alpha = 0.7) +
-  labs(title = "Histogram of Conductance Values", x = "Conductance (uS)", y = "Frequency") +
-  theme_minimal()
-
-scatterplot <- ggplot(data, aes(x = Time, y = Conductance)) +
-  geom_point(color = "blue") +
-  labs(title = "Scatterplot of Conductance vs. Time", x = "Time (s)", y = "Conductance (uS)") +
-  theme_minimal()
-
-print(histogram)
-print(scatterplot)
+# Print the results
+cat("Positive Control AUC:", format(positive_control_result$auc, scientific = FALSE), "\n")
+cat("Pretzel Attack AUC:", format(pretzel_attack_result$auc, scientific = FALSE), "\n")
