@@ -9,10 +9,12 @@ for (package in required_packages) {
 }
 
 # Read data from the provided Excel file
-data <- read_excel("5_21-GSR-COPY.xlsx", skip = 2)
+data <- read_excel("data/5_21-GSR-COPY.xlsx")
 
 # Check and clean column names
-colnames(data) <- c("Time", "Conductance")
+current_colnames <- colnames(data)
+colnames(data)[which(current_colnames == "Time")] <- "Time"
+colnames(data)[which(current_colnames == "Shimmer_847A_GSR_Skin_Conductance_CAL")] <- "Conductance"
 
 # Convert columns to numeric
 data$Time <- as.numeric(data$Time)
@@ -55,5 +57,5 @@ positive_control_result <- calculate_auc_with_baseline(data, positive_control_st
 pretzel_attack_result <- calculate_auc_with_baseline(data, pretzel_attack_start, pretzel_attack_end, pretzel_attack_baseline_start, pretzel_attack_baseline_end)
 
 # Print the results
-cat("Positive Control AUC:", format(positive_control_result$auc, scientific = TRUE), "\n")
-cat("Pretzel Attack AUC:", format(pretzel_attack_result$auc, scientific = TRUE), "\n")
+cat("Positive Control AUC:", format(positive_control_result$auc, scientific = FALSE), "\n")
+cat("Pretzel Attack AUC:", format(pretzel_attack_result$auc, scientific = FALSE), "\n")
