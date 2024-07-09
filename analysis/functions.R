@@ -54,6 +54,6 @@ process_file <- function(file_path, time_col, conductance_col, intervals) {
 # Function to print results
 print_results <- function(results) {
   for (name in names(results)) {
-    cat(name, "AUC:", format(results[[name]]$auc, scientific = TRUE), "\n")
+    cat(name, "AUC:", format(results[[name]]$auc, scientific = FALSE), "\n")
   }
 }
