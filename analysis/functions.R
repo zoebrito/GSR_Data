@@ -1,5 +1,3 @@
-# functions.R
-
 # Load necessary packages
 required_packages <- c("readxl", "pracma")
 
