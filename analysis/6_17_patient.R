@@ -8,6 +8,6 @@ intervals_6_17 <- list(
 )
 
 # Process the file and print results
-results_6_13 <- process_file("data/6_17_GSR_COPY.xlsx", "s", "uS", intervals_6_17)
+results_6_17 <- process_file("data/6_17_GSR_COPY.xlsx", "s", "uS", intervals_6_17)
 cat("Results for 6_17_GSR_COPY.xlsx:\n")
-print_results(results_6_13)
+print_results(results_6_17)
